@@ -3,6 +3,7 @@ import { WidthProvider, Responsive } from "react-grid-layout";
 import _ from "lodash";
 import Editor from "./Editor";
 import UploadAndDisplayImage from "./UploadAndDisplayImage";
+import CarouselCard from "./CarouselCard";
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
 
@@ -36,7 +37,22 @@ export default class EditorWindow extends React.PureComponent {
 
     this.onAddItem = this.onAddItem.bind(this);
     this.onAddPic = this.onAddPic.bind(this);
+    this.onAddCarousel = this.onAddCarousel.bind(this);
     this.onBreakpointChange = this.onBreakpointChange.bind(this);
+  }
+
+  // for switch in the return expression 
+  renderSwitch(param) {
+    switch(param) {
+      case "text":
+        return <Editor />;
+      case "picture":
+        return <UploadAndDisplayImage />;
+      case "carousel":
+        return <CarouselCard />;
+      default:
+        return;
+    }
   }
 
   createElement(el) {
@@ -59,7 +75,8 @@ export default class EditorWindow extends React.PureComponent {
         >
           x
         </span>
-        {type == "text" ? <Editor /> : <UploadAndDisplayImage />}
+        
+        {this.renderSwitch(type)}
       </div>
     );
   }
@@ -100,6 +117,24 @@ export default class EditorWindow extends React.PureComponent {
     });
   }
 
+  onAddCarousel() {
+    /*eslint no-console: 0*/
+    console.log("adding", "n" + this.state.newCounter);
+    this.setState({
+      // Add a new item. It must have a unique key!
+      items: this.state.items.concat({
+        i: "n" + this.state.newCounter,
+        x: (this.state.items.length * 2) % (this.state.cols || 12),
+        y: Infinity, // puts it at the bottom
+        w: 2,
+        h: 2,
+        type: "carousel",
+      }),
+      // Increment the counter to ensure key is always unique.
+      newCounter: this.state.newCounter + 1,
+    });
+  }
+
   // We're using the cols coming back from this to calculate where to add new items.
   onBreakpointChange(breakpoint, cols) {
     this.setState({
@@ -124,6 +159,7 @@ export default class EditorWindow extends React.PureComponent {
         <div className="sidebar">
           <button onClick={this.onAddItem}>Add Text</button>
           <button onClick={this.onAddPic}>Add Pic</button>
+          <button onClick={this.onAddCarousel}>Add Carousel</button>
         </div>
         <div className="main">
         <ResponsiveReactGridLayout
