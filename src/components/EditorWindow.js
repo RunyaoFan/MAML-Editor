@@ -4,6 +4,10 @@ import _ from "lodash";
 import Editor from "./Editor";
 import UploadAndDisplayImage from "./UploadAndDisplayImage";
 import CarouselCard from "./CarouselCard";
+import Carousel from "./Carousel";
+import CarouselEditor from "./CarouselEditor";
+import Popup from "reactjs-popup";
+import "reactjs-popup/dist/index.css";
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
 
@@ -159,6 +163,9 @@ export default class EditorWindow extends React.PureComponent {
         <div className="sidebar">
           <button onClick={this.onAddItem}>Add Text</button>
           <button onClick={this.onAddPic}>Add Pic</button>
+          <Popup trigger={<button> Edit</button>} position="right center" modal>
+        <CarouselEditor />
+      </Popup>
           <button onClick={this.onAddCarousel}>Add Carousel</button>
         </div>
         <div className="main">
