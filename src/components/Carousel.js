@@ -4,30 +4,25 @@ import Slider from "react-slick";
 import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
-class Carousel extends React.Component {
-  render() {
+const Carousel = (props) => {
+    console.log(props.images);
     var settings = {
-      dots: true
-    };
-    return (
-      <div className="container">
-        <Slider {...settings}>
-          <div>
-            <img src="http://placekitten.com/g/400/200" />
-          </div>
-          <div>
-            <img src="http://placekitten.com/g/400/200" />
-          </div>
-          <div>
-            <img src="http://placekitten.com/g/400/200" />
-          </div>
-          <div>
-            <img src="http://placekitten.com/g/400/200" />
-          </div>
-        </Slider>
-      </div>
-    );
-  }
+        dots: true
+      };
+      return (
+        <div className="container">
+          <Slider {...settings}>
+          {props.images.map((image, index) => (
+            <div key={index}>
+              <img src={image['data_url']} width="100%"/>
+            </div>
+              
+            ))}
+          
+          </Slider>
+        </div>
+      );
 }
+
 
 export default Carousel;

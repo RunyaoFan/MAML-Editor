@@ -2,25 +2,21 @@ import React from "react";
 import "./CarouselEditor.css";
 import ImageUploading from 'react-images-uploading';
 
-const CarouselEditor = () => {
-  const [images, setImages] = React.useState([]);
+const CarouselEditor = (props) => {
+  // const [images, setImages] = React.useState([]);
   const maxNumber = 60;
 
   const onChange = (imageList, addUpdateIndex) => {
     // data for submit
     console.log(imageList, addUpdateIndex);
-    setImages(imageList);
+    props.setImages(imageList);
   };
-
-  function onImageInfo() {
-    console.log(images);
-  }
 
   return (
     <div className="App">
       <ImageUploading
         multiple
-        value={images}
+        value={props.images}
         onChange={onChange}
         maxNumber={maxNumber}
         dataURLKey="data_url"
@@ -46,7 +42,7 @@ const CarouselEditor = () => {
             &nbsp;
             <button onClick={onImageRemoveAll}>Remove all images</button>
             &nbsp;
-            <button onClick={onImageInfo}>Create Carousel</button>
+            <button onClick={props.addCarousel}>Create Carousel</button>
             {imageList.map((image, index) => (
               <div key={index} className="image-item">
                 <img src={image['data_url']} alt="" width="100" />
