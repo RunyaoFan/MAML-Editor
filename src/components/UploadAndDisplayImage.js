@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const UploadAndDisplayImage = () => {
+const UploadAndDisplayImage = (props) => {
   const [selectedImage, setSelectedImage] = useState(null);
 
   return (
@@ -16,8 +16,9 @@ const UploadAndDisplayImage = () => {
         type="file"
         name="myImage"
         onChange={(event) => {
-          console.log(event.target.files[0]);
+          console.log("from UploadAndDisplayImage.js:", event.target.files[0]);
           setSelectedImage(event.target.files[0]);
+          props.setPic(event.target.files[0], props.picItemID)
         }}
       />}
     </div>

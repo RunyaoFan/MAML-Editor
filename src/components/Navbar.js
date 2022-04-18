@@ -8,6 +8,7 @@ const ResponsiveReactGridLayout = WidthProvider(Responsive);
 /**
  * This layout demonstrates how to use a grid with a dynamic number of elements.
  */
+
 export default class Navbar extends React.PureComponent {
   static defaultProps = {
     className: "layout",
@@ -35,7 +36,6 @@ export default class Navbar extends React.PureComponent {
       }),
       newCounter: 0,
     };
-
     this.onAddItem = this.onAddItem.bind(this);
     this.onBreakpointChange = this.onBreakpointChange.bind(this);
   }
@@ -48,10 +48,13 @@ export default class Navbar extends React.PureComponent {
       cursor: "pointer",
     };
     const i = el.i;
-    return el.type == "button" ? (
-      <div key={i} data-grid={el}>
+    return el.type === "button" ? (
+      <div
+        id={"navbarButton"+i}
+        key={i}
+        data-grid={el}
+      >
         <span className="text">{el.text}</span>
-
         <span
           className="remove"
           style={removeStyle}
@@ -61,7 +64,7 @@ export default class Navbar extends React.PureComponent {
         </span>
       </div>
     ) : (
-      <div key={i} data-grid={el}>
+      <div id={"navbarButton"+i} key={i} data-grid={el}>
         <span className="text">
           <Dropdown
             options={el.items}
@@ -115,14 +118,13 @@ export default class Navbar extends React.PureComponent {
 
   onRemoveItem(i) {
     console.log("removing", i);
+    console.log(this.itemsRef.current[i]);
     this.setState({ items: _.reject(this.state.items, { i: i }) });
   }
 
   render() {
-    console.log("haha");
-    console.log(this.state.items);
     return (
-      <div>
+      <div >
         <ResponsiveReactGridLayout
           //   onLayoutChange={this.onLayoutChange}
           onBreakpointChange={this.onBreakpointChange}
@@ -134,7 +136,7 @@ export default class Navbar extends React.PureComponent {
     );
   }
 }
-
+// export default Navbar;
 // if (process.env.STATIC_EXAMPLES === true) {
 //   import("../test-hook.jsx").then(fn => fn.default(AddRemoveLayout));
 // }

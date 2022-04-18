@@ -9,14 +9,14 @@ const CarouselEditor = (props) => {
   const onChange = (imageList, addUpdateIndex) => {
     // data for submit
     console.log(imageList, addUpdateIndex);
-    props.setImages(imageList);
+    props.setImages(imageList, props.uid);
   };
 
   return (
     <div className="App">
       <ImageUploading
         multiple
-        value={props.images}
+        value={props.images.get(props.uid)}
         onChange={onChange}
         maxNumber={maxNumber}
         dataURLKey="data_url"

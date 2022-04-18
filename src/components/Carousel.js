@@ -5,7 +5,8 @@ import "slick-carousel/slick/slick.css";
 import "slick-carousel/slick/slick-theme.css";
 
 const Carousel = (props) => {
-    console.log(props.images);
+    // console.log("Carousel logging its images");
+    // console.log(props.images);
     var settings = {
         dots: true
       };
