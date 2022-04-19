@@ -1,6 +1,7 @@
 import React from "react";
 import { WidthProvider, Responsive } from "react-grid-layout";
 import _ from "lodash";
+import { SketchPicker } from 'react-color';
 import Editor from "./Editor";
 import UploadAndDisplayImage from "./UploadAndDisplayImage";
 import Carousel from "./Carousel";
@@ -45,8 +46,9 @@ export default class EditorWindow extends React.PureComponent {
       navBar: false,
       navbarItems: [],
       navbarItemCnt: 0,
-      singleImages: new Map() // stores state of picture items
+      singleImages: new Map(), // stores state of picture items
       // carouselEditorID: 0 // each time we create a carousel, the editor should be cleared of images from previous carousel creations
+      pageName: ""
     };
 
     this.onAddItem = this.onAddItem.bind(this);
@@ -60,6 +62,7 @@ export default class EditorWindow extends React.PureComponent {
     this.generatePage = this.generatePage.bind(this);
     this.setPic = this.setPic.bind(this); // function to be passed to and called by child component
     // this.updateCarouselEditorID = this.updateCarouselEditorID.bind(this);
+    this.handleNameChange = this.handleNameChange.bind(this);
   }
 
   // for switch in the return expression
@@ -236,9 +239,15 @@ export default class EditorWindow extends React.PureComponent {
 
   }
 
+  handleNameChange(event) {
+    this.setState({pageName: event.target.value});
+  }
+
   generatePage() {
     let x, y, w, h, textX, textY, textW, textH;
     let maml = "";
+    let pageName = this.state.pageName;
+    // console.log(pageName);
     if (this.state.navBar) {
       x = document.getElementById("navbar").getBoundingClientRect().x;
       y = document.getElementById("navbar").getBoundingClientRect().y;
@@ -309,6 +318,7 @@ export default class EditorWindow extends React.PureComponent {
     // make a group of images and the maml object and send to the backend
     const data = new FormData();
     data.append('maml', maml);
+    data.append('pageName', pageName);
     this.state.singleImages.forEach((value, key) => {
       let nameList = value.name.split('.');
       let fileExtension = nameList[nameList.length - 1];
@@ -331,24 +341,24 @@ export default class EditorWindow extends React.PureComponent {
       "password":"akosah"
     }
 
-    // fetch('http://10.224.41.106:8080/api/users/login',{
-    //         'method':'POST',
-    //          headers : {
-    //         'Content-Type':'application/json',
-    //   },
-    //   body:JSON.stringify(data2)
-    // }).then(response => response.json())
-    // .then(data => console.log(data));
-
-    fetch('http://10.224.41.106:8080/api/pages/upload',{
+    fetch('http://10.224.41.106:8080/api/users/login',{
             'method':'POST',
              headers : {
-            'Authorization':'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImFrb3NhaEBnbWFpbC5jb20iLCJleHAiOjE2NDk3NTYzNjR9._RqbjV7nQrRy4YGbThdh5NKIcPYks3_caAoxtr_AKkU'
+            'Content-Type':'application/json',
       },
-      body:data
+      body:JSON.stringify(data2)
     }).then(response => response.json())
-    .then(data1 => {console.log(data1);
-      console.log("DEBUG DATA AFTER:", maml, data.get("files"))});
+    .then(data => console.log(data));
+
+    // fetch('http://10.224.41.106:8080/api/pages/upload',{
+    //         'method':'POST',
+    //          headers : {
+    //         'Authorization':'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImFrb3NhaEBnbWFpbC5jb20iLCJleHAiOjE2NTAzNTA2OTd9.DI2_fLrMx13FQSq9uI4Ip_GWbJv9HtVeZWDGQJ0dekc'
+    //   },
+    //   body:data
+    // }).then(response => response.json())
+    // .then(data1 => {console.log(data1);
+    //   console.log("DEBUG DATA AFTER:", maml, data.get("files"))});
 
   }
 
@@ -373,7 +383,17 @@ export default class EditorWindow extends React.PureComponent {
               // updateID={this.updateCarouselEditorID}
             />
           </Popup>
-          <button onClick={this.onAddNavBar}>Toggle Navbar</button>
+          <Popup
+            trigger={<button>Toggle Navbar</button>}
+            position="right center"
+            modal
+          >
+            <div>
+            <SketchPicker />
+            <button onClick={this.onAddNavBar}>Create</button>
+            </div>
+          </Popup>
+          
           <Popup
             trigger={<button> Add Navbar Button</button>}
             position="right center"
@@ -388,7 +408,18 @@ export default class EditorWindow extends React.PureComponent {
           >
             <NavbarDropdownEditor setDropdownItems={this.setDropdownItems} />
           </Popup>
-          <button onClick={this.generatePage}>Generate Page</button>
+          <Popup
+            trigger={<button onClick={this.generatePage}>Generate Page</button>}
+            position="right center"
+            modal
+          >
+            <div>
+            <p>Please specify your page name</p>
+            <input type="text" value={this.state.pageName} onChange={this.handleNameChange} />
+            <button onClick={this.generatePage}>Create</button>
+            </div>
+          </Popup>
+          
         </div>
         <div className="main">
           {this.state.navBar ? (
