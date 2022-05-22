@@ -6,10 +6,24 @@ const toolbarOptions = ["bold"];
 class Editor extends Component {
   constructor(props) {
     super(props);
+    // props.setText("<div contenteditable='false'>Add Text</div>", props.textID);
+    let storedText = props.textMap.get(props.textID);
     this.state = {
-      text: "<div contenteditable='false'>Add Text</div>"
+      text: storedText ? storedText : "<div contenteditable='false'>Add Text</div>"
     };
+    // this.state = {
+    //   text: "<div contenteditable='false'>Add Text</div>"
+    // };
   }
+
+  // modules = useMemo(() => ({
+  //   toolbar: [
+  //     [{ header: [1, 2, false] }],
+  //     ["bold", "italic", "underline", "strike", "blockquote"],
+  //     [{ list: "ordered" }, { list: "bullet" }],
+  //     ["link", "image"]
+  //   ]
+  // }), [])
 
   modules = {
     toolbar: [
@@ -37,6 +51,8 @@ class Editor extends Component {
     // store the content as the editor state so user input persists when the
     // layout re-renders
     this.state.text = content;
+    // console.log("FROM EDITOR", this.state.text);
+    // this.props.setText(content, this.props.textID);
     //let has_attribues = delta.ops[1].attributes || "";
     //console.log(has_attribues);
     //const cursorPosition = e.quill.getSelection().index;
@@ -51,6 +67,8 @@ class Editor extends Component {
       modules={this.modules}
       formats={this.formats}
       value={this.state.text}
+      // defaultValue={this.state.text}
+      // value={this.props.textMap.get(this.props.textID) ? this.props.textMap.get(this.props.textID) : ""}
       onChange={this.handleProcedureContentChange}
     >
       <div className="my-editing-area" />

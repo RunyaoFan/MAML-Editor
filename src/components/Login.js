@@ -22,7 +22,7 @@ function Login() {
           body:JSON.stringify(data)
         }).then(response => {
             if (response.status == 200) {
-                history('/editor');
+                history('/view');
             } else {
                 alert("Login failed:", response.status)
             }

@@ -10,20 +10,45 @@ import Popup from "reactjs-popup";
 import Navbar from "./Navbar";
 import NavbarButtonEditor from "./NavbarButtonEditor";
 import NavbarDropdownEditor from "./NavbarDropdownEditor";
+import {withRouter} from './withRouter';
 import "reactjs-popup/dist/index.css";
 import "./EditorWindow.css";
+import { useParams } from "react-router-dom";
 
 const ResponsiveReactGridLayout = WidthProvider(Responsive);
+
+function withParams(Component) {
+    return props => <Component {...props} params={useParams()} />;
+  }
 
 /**
  * This layout demonstrates how to use a grid with a dynamic number of elements.
  */
-export default class EditorWindow extends React.PureComponent {
+class ResumedEditorWindow extends React.PureComponent {
   static defaultProps = {
     className: "layout",
     cols: { lg: 12, md: 10, sm: 6, xs: 4, xxs: 2 },
-    rowHeight: 15,
+    rowHeight: 100,
   };
+
+  componentDidMount() {
+    let { id } = this.props.params;
+    fetch('http://10.224.41.106:8080/api/pages/getPage/' + id,{
+        'method':'GET',
+        headers : {
+        'Authorization':'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImFrb3NhaEBnbWFpbC5jb20iLCJleHAiOjE2NTA5NjQ1NDN9.oUsgoXq1hzzRodpuYVIIIXf4bsAJfMwZUK3KtY4TnxY'
+      }
+    }).then(response => response.json())
+    .then(data1 => {console.log(data1);
+        // pageNames = data1.pages;
+        // this.setState({
+        //     items: data1.pages.length,
+        //     pageNames: data1.pages
+        // });
+    },err => {
+        alert("error during fetch", err);
+    }   )
+  }
 
   constructor(props) {
     super(props);
@@ -50,8 +75,7 @@ export default class EditorWindow extends React.PureComponent {
       // carouselEditorID: 0 // each time we create a carousel, the editor should be cleared of images from previous carousel creations
       pageName: "",
       texts: new Map(),
-      allUpdated: false,
-      navBarColor: "grey"
+      allUpdated: false
     };
 
     this.onAddItem = this.onAddItem.bind(this);
@@ -149,11 +173,11 @@ export default class EditorWindow extends React.PureComponent {
     const uid = el.uid;
 
     return (
-      <div id={"mainItem"+uid} key={uid} data-grid={el} className="text-box">
+      <div id={"mainItem"+i} key={uid} data-grid={el} className="text-box">
         <span
           className="remove"
           style={removeStyle}
-          onClick={this.onRemoveItem.bind(this, uid)}
+          onClick={this.onRemoveItem.bind(this, i)}
         >
           x
         </span>
@@ -259,17 +283,16 @@ export default class EditorWindow extends React.PureComponent {
     let x, y, w, h, textX, textY, textW, textH;
     let maml = "";
     let pageName = this.state.pageName;
-    let yOffset = window.scrollY;
-    console.log("Y OFFSET", yOffset);
+    // console.log(pageName);
     if (this.state.navBar) {
       x = document.getElementById("navbar").getBoundingClientRect().x;
-      y = document.getElementById("navbar").getBoundingClientRect().y + yOffset;
+      y = document.getElementById("navbar").getBoundingClientRect().y;
       w = document.getElementById("navbar").getBoundingClientRect().width;
       h = document.getElementById("navbar").getBoundingClientRect().height;
-      maml = maml.concat("{\"type\":\"rect\",\"x\":", x, ",\"y\":", y, ",\"w\":", w, ",\"h\":", h, ",\"color\":\"", this.state.navBarColor ,"\"}\n");
+      maml = maml.concat("{\"type\":\"rect\",\"x\":", x, ",\"y\":", y, ",\"w\":", w, ",\"h\":", h, ",\"color\":\"#808080\"}\n");
       for (let i = 0; i < this.state.navbarItemCnt; i++) {
         x = document.getElementById("navbarButton" + i).getBoundingClientRect().x;
-        y = document.getElementById("navbarButton" + i).getBoundingClientRect().y + yOffset;
+        y = document.getElementById("navbarButton" + i).getBoundingClientRect().y;
         w = document.getElementById("navbarButton" + i).getBoundingClientRect().width;
         h = document.getElementById("navbarButton" + i).getBoundingClientRect().height;
         if (this.state.navbarItems[i].type === "button") {
@@ -282,102 +305,61 @@ export default class EditorWindow extends React.PureComponent {
 
     let newTexts = new Map(this.state.texts);
 
-    for (let i = 0; i < this.state.uniqueCounter; i++) {
+    for (let i = 0; i < this.state.newCounter; i++) {
       // console.log("DEBUG",i);
-      if (document.getElementById("mainItem" + i) == null) {
-        continue;
-      } else {
-        console.log("CURRENT STATE: ",this.state);
-        x = document.getElementById("mainItem" + i).getBoundingClientRect().x;
-        y = document.getElementById("mainItem" + i).getBoundingClientRect().y + yOffset;
-        w = document.getElementById("mainItem" + i).getBoundingClientRect().width;
-        h = document.getElementById("mainItem" + i).getBoundingClientRect().height;
-        console.log("CURRENT ITEM: ",this.state.items[i], "TYPE", this.state.items[i].type);
-        if (this.state.items[i].type === "text") {
-          let textBox = document.querySelector("#mainItem" + i + " .ql-editor");
-          let textList = textBox.childNodes;
-          x = document.querySelector("#mainItem" + i).getBoundingClientRect().x;
-          y = document.querySelector("#mainItem" + i).getBoundingClientRect().y + yOffset;
-          w = document.querySelector("#mainItem" + i).getBoundingClientRect().width;
-          h = document.querySelector("#mainItem" + i).getBoundingClientRect().height;
-          for (let j = 0; j < textList.length; j++) {
-            // console.log("LOOK HERE", textList[i].outerHTML);
-            let processedText = textList[j].innerHTML.replace(/\"/g, '\\"');
-            newTexts.set(this.state.items[i].uid + "-" + j, String(textList[j].outerHTML));
-            console.log("AFTER", newTexts);
-          
-            this.setState({texts: newTexts}, () => {
-              // console.log("AFTER SETTING TEXT: ", this.state.texts);
-            });
-            // this.setText(text, this.state.items[i].uid);
-            // console.log("AFTER SETTING TEXT: ", this.state.texts);
-            const style = getComputedStyle(textList[j]);
-            // get the dimensions of the actual text
-            textX = textList[j].getBoundingClientRect().x;
-            textY = textList[j].getBoundingClientRect().y + yOffset;
-            textW = textList[j].getBoundingClientRect().width;
-            textH = textList[j].getBoundingClientRect().height;
-            // maml = maml.concat("{\"type\":\"txt\",\"txt\":\"", text.innerHTML, "\",\"txtFields\":\"0\",\"x\":", x, ",\"y\":", y, ",\"w\":", w, ",\"h\":", h, ",\"textX\":", textX, ",\"textY\":", textY, ",\"textW\":", textW, ",\"textH\":", textH, ",\"font\":\"",style.fontSize,"\",\"font-family\":\"",style.fontFamily,"\",\"color\":\"",style.color,"\"}\n");
-            maml = maml.concat("{\"type\":\"txt\",\"txt\":\"", processedText, "\",\"x\":", x, ",\"y\":", y, ",\"w\":", w, ",\"h\":", h, ",\"textX\":", textX, ",\"textY\":", textY, ",\"textW\":", textW, ",\"textH\":", textH, ",\"font\":\"",style.fontSize,"\",\"font-family\":\"",style.fontFamily,"\",\"color\":\"",style.color,"\"}\n");
-          }
-          // console.log(textList);
-          
-          // let processedText = textBox.innerHTML.replace(/\"/g, '\"');
-          // console.log(processedText);
-          // let text = textBox.firstChild;
-          // let text;
-          // for (let i = 0; i < textBox.children.length; i++) {
-          //   text += textBox.children[i];
-          // }
-          
-          // console.log("SETTING TEXT: ", text);
-          
-          // console.log("BEFORE", newTexts, text);
-          // newTexts.set(this.state.items[i].uid, String(text.outerHTML));
-          // newTexts.set(this.state.items[i].uid, String(processedText));
-          // console.log("AFTER", newTexts);
+      console.log("CURRENT STATE: ",this.state);
+      x = document.getElementById("mainItem" + i).getBoundingClientRect().x;
+      y = document.getElementById("mainItem" + i).getBoundingClientRect().y;
+      w = document.getElementById("mainItem" + i).getBoundingClientRect().width;
+      h = document.getElementById("mainItem" + i).getBoundingClientRect().height;
+      if (this.state.items[i].type === "text") {
+        let textBox = document.querySelector("#mainItem" + i + " .ql-editor");
+        let text = textBox.firstChild;
+        console.log("SETTING TEXT: ", text);
         
-          // this.setState({texts: newTexts}, () => {
-          //   // console.log("AFTER SETTING TEXT: ", this.state.texts);
-          // });
-          // // this.setText(text, this.state.items[i].uid);
-          // // console.log("AFTER SETTING TEXT: ", this.state.texts);
-          // const style = getComputedStyle(text);
-          // // get the dimensions of the actual text
-          // textX = text.getBoundingClientRect().x;
-          // textY = text.getBoundingClientRect().y + yOffset;
-          // textW = text.getBoundingClientRect().width;
-          // textH = text.getBoundingClientRect().height;
-          // x = document.querySelector("#mainItem" + i).getBoundingClientRect().x;
-          // y = document.querySelector("#mainItem" + i).getBoundingClientRect().y + yOffset;
-          // w = document.querySelector("#mainItem" + i).getBoundingClientRect().width;
-          // h = document.querySelector("#mainItem" + i).getBoundingClientRect().height;
-          // // maml = maml.concat("{\"type\":\"txt\",\"txt\":\"", text.innerHTML, "\",\"txtFields\":\"0\",\"x\":", x, ",\"y\":", y, ",\"w\":", w, ",\"h\":", h, ",\"textX\":", textX, ",\"textY\":", textY, ",\"textW\":", textW, ",\"textH\":", textH, ",\"font\":\"",style.fontSize,"\",\"font-family\":\"",style.fontFamily,"\",\"color\":\"",style.color,"\"}\n");
-          // maml = maml.concat("{\"type\":\"txt\",\"txt\":\"", processedText, "\",\"txtFields\":\"0\",\"x\":", x, ",\"y\":", y, ",\"w\":", w, ",\"h\":", h, ",\"textX\":", textX, ",\"textY\":", textY, ",\"textW\":", textW, ",\"textH\":", textH, ",\"font\":\"",style.fontSize,"\",\"font-family\":\"",style.fontFamily,"\",\"color\":\"",style.color,"\"}\n");
-        } else if (this.state.items[i].type === "picture") {
-          let image = document.querySelector("#mainItem" + i + " img");
-          x = image.getBoundingClientRect().x;
-          y = image.getBoundingClientRect().y + yOffset;
-          w = image.getBoundingClientRect().width;
-          h = image.getBoundingClientRect().height;
-          let imageNameList = this.state.singleImages.get(i).name.split('.');
-          let format = imageNameList[imageNameList.length - 1];
-          maml = maml.concat("{\"type\":\"img\",\"uid\":\"", this.state.items[i].uid, "\",\"format\":\"", format, "\",\"x\":", x, ",\"y\":", y, ",\"w\":", w, ",\"h\":", h, "}\n");
-        } else if (this.state.items[i].type === "carousel") {
-          let carousel = document.querySelector("#mainItem" + i);
-          x = carousel.getBoundingClientRect().x;
-          y = carousel.getBoundingClientRect().y + yOffset;
-          w = carousel.getBoundingClientRect().width;
-          h = carousel.getBoundingClientRect().height;
-          let imageArray = this.state.carouselImages.get(i);
-          let imageCnt = imageArray.length;
-          let formats = [];
-          for (let j = 0; j < imageCnt; j++) {
-            let nameList = imageArray[j].file.name.split('.');
-            formats.push("\"" + nameList[nameList.length - 1] + "\"");
-          }
-          maml = maml.concat("{\"type\":\"carousel\",\"uid\":\"", this.state.items[i].uid, "\",\"imageCnt\":", imageCnt, ",\"formats\":[", formats, "],\"x\":", x, ",\"y\":", y, ",\"w\":", w, ",\"h\":", h, "}\n");
+        console.log("BEFORE", newTexts, text);
+        newTexts.set(this.state.items[i].uid, String(text.outerHTML));
+        console.log("AFTER", newTexts);
+      
+        this.setState({texts: newTexts}, () => {
+          console.log("AFTER SETTING TEXT: ", this.state.texts);
+        });
+        // this.setText(text, this.state.items[i].uid);
+        // console.log("AFTER SETTING TEXT: ", this.state.texts);
+        const style = getComputedStyle(text);
+        // get the dimensions of the actual text
+        textX = text.getBoundingClientRect().x;
+        textY = text.getBoundingClientRect().y;
+        textW = text.getBoundingClientRect().width;
+        textH = text.getBoundingClientRect().height;
+        x = document.querySelector("#mainItem" + i).getBoundingClientRect().x;
+        y = document.querySelector("#mainItem" + i).getBoundingClientRect().y;
+        w = document.querySelector("#mainItem" + i).getBoundingClientRect().width;
+        h = document.querySelector("#mainItem" + i).getBoundingClientRect().height;
+        maml = maml.concat("{\"type\":\"txt\",\"txt\":\"", text.innerHTML, "\",\"txtFields\":\"0\",\"x\":", x, ",\"y\":", y, ",\"w\":", w, ",\"h\":", h, ",\"textX\":", textX, ",\"textY\":", textY, ",\"textW\":", textW, ",\"textH\":", textH, ",\"font\":\"",style.fontSize,"\",\"font-family\":\"",style.fontFamily,"\",\"color\":\"",style.color,"\"}\n");
+      } else if (this.state.items[i].type === "picture") {
+        let image = document.querySelector("#mainItem" + i + " img");
+        x = image.getBoundingClientRect().x;
+        y = image.getBoundingClientRect().y;
+        w = image.getBoundingClientRect().width;
+        h = image.getBoundingClientRect().height;
+        let imageNameList = this.state.singleImages.get(i).name.split('.');
+        let format = imageNameList[imageNameList.length - 1];
+        maml = maml.concat("{\"type\":\"img\",\"uid\":\"", this.state.items[i].uid, "\",\"format\":\"", format, "\",\"x\":", x, ",\"y\":", y, ",\"w\":", w, ",\"h\":", h, "}\n");
+      } else if (this.state.items[i].type === "carousel") {
+        let carousel = document.querySelector("#mainItem" + i);
+        x = carousel.getBoundingClientRect().x;
+        y = carousel.getBoundingClientRect().y;
+        w = carousel.getBoundingClientRect().width;
+        h = carousel.getBoundingClientRect().height;
+        let imageArray = this.state.carouselImages.get(i);
+        let imageCnt = imageArray.length;
+        let formats = [];
+        for (let j = 0; j < imageCnt; j++) {
+          let nameList = imageArray[j].file.name.split('.');
+          formats.push("\"" + nameList[nameList.length - 1] + "\"");
         }
+        maml = maml.concat("{\"type\":\"carousel\",\"uid\":\"", this.state.items[i].uid, "\",\"imageCnt\":", imageCnt, ",\"formats\":[", formats, "],\"x\":", x, ",\"y\":", y, ",\"w\":", w, ",\"h\":", h, "}\n");
       }
     }
     console.log(maml);
@@ -429,13 +411,12 @@ export default class EditorWindow extends React.PureComponent {
     fetch('http://10.224.41.106:8080/api/pages/upload',{
             'method':'POST',
              headers : {
-            'Authorization':'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImFrb3NhaEBnbWFpbC5jb20iLCJleHAiOjE2NTE5MTI0NTd9.5D3aX1Ikjd9m-4zJdTmT8xWHOzRkRdY66Yj04Z64Sv8'
+            'Authorization':'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJlbWFpbCI6ImFrb3NhaEBnbWFpbC5jb20iLCJleHAiOjE2NTA5NTU0MDB9.MXbjweJGTC67DIe9eS948hDEwqkZeXGFxFqBHJAz84I'
       },
       body:data
     }).then(response => response.json())
     .then(data1 => {console.log(data1);
       console.log("DEBUG DATA AFTER:", maml, data.get("files"))});
-
     });
 
     
@@ -488,8 +469,7 @@ export default class EditorWindow extends React.PureComponent {
             modal
           >
             <div>
-            <SketchPicker color={this.state.navBarColor}
-        onChange={(color) => {this.setState({ navBarColor: color.hex })}}/>
+            <SketchPicker />
             <button onClick={this.onAddNavBar}>Create</button>
             </div>
           </Popup>
@@ -523,7 +503,7 @@ export default class EditorWindow extends React.PureComponent {
         </div>
         <div className="main">
           {this.state.navBar ? (
-            <div className="navbar" id="navbar" style={{backgroundColor: this.state.navBarColor}}>
+            <div className="navbar" id="navbar">
               <Navbar navbarItems={this.state.navbarItems} />
             </div>
           ) : null}
@@ -534,7 +514,6 @@ export default class EditorWindow extends React.PureComponent {
             draggableCancel=".my-editing-area"
             autoSize={true}
             margin={[1, 1]}
-            // allowOverlap={true}
           >
             {_.map(this.state.items, (el) => this.createElement(el))}
           </ResponsiveReactGridLayout>
@@ -547,3 +526,5 @@ export default class EditorWindow extends React.PureComponent {
 // if (process.env.STATIC_EXAMPLES === true) {
 //   import("../test-hook.jsx").then(fn => fn.default(AddRemoveLayout));
 // }
+
+export default withParams(ResumedEditorWindow);

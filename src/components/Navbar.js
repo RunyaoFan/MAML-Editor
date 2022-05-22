@@ -118,7 +118,7 @@ export default class Navbar extends React.PureComponent {
 
   onRemoveItem(i) {
     console.log("removing", i);
-    console.log(this.itemsRef.current[i]);
+    // console.log(this.itemsRef.current[i]);
     this.setState({ items: _.reject(this.state.items, { i: i }) });
   }
 
